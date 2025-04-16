@@ -10,61 +10,43 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ListView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.sqrt
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var edtHoTen: EditText
-    private lateinit var edtMSSV: EditText
-    private lateinit var btnAdd: Button
-    private lateinit var listView: ListView
-    private lateinit var adapter: StudentAdapter
+    private lateinit var studentAdapter: StudentAdapter
     private val studentList = mutableListOf<Student>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        edtHoTen = findViewById(R.id.edtHoTen)
-        edtMSSV = findViewById(R.id.edtMSSV)
-        btnAdd = findViewById(R.id.btnAdd)
-        listView = findViewById(R.id.listView)
+        val etName = findViewById<EditText>(R.id.etName)
+        val etMSSV = findViewById<EditText>(R.id.etMSSV)
+        val btnAdd = findViewById<Button>(R.id.btnAdd)
+        val rvStudents = findViewById<RecyclerView>(R.id.rvStudents)
 
-        adapter = StudentAdapter(this, studentList)
-        listView.adapter = adapter
+        studentAdapter = StudentAdapter(studentList)
+        rvStudents.layoutManager = LinearLayoutManager(this)
+        rvStudents.adapter = studentAdapter
 
         btnAdd.setOnClickListener {
-            val hoTen = edtHoTen.text.toString().trim()
-            val mssv = edtMSSV.text.toString().trim()
-            if (hoTen.isNotEmpty() && mssv.isNotEmpty()) {
-                studentList.add(0, Student(hoTen, mssv))
-                adapter.notifyDataSetChanged()
-                edtHoTen.text.clear()
-                edtMSSV.text.clear()
+            val name = etName.text.toString()
+            val mssv = etMSSV.text.toString()
+
+            if (name.isNotEmpty() && mssv.isNotEmpty()) {
+                val newStudent = Student(name, mssv)
+                studentAdapter.addStudent(newStudent)
+
+                etName.text.clear()
+                etMSSV.text.clear()
+            } else {
+                Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
 
-data class Student(val name: String, val mssv: String)
-
-class StudentAdapter(private val context: Context, private val students: MutableList<Student>) :
-    ArrayAdapter<Student>(context, 0, students) {
-
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.list_item_student, parent, false)
-
-        val txtNameMssv: TextView = view.findViewById(R.id.txtNameMssv)
-        val btnDelete: Button = view.findViewById(R.id.btnDelete)
-
-        val student = students[position]
-        txtNameMssv.text = "${student.name}\n${student.mssv}"
-
-        btnDelete.setOnClickListener {
-            students.removeAt(position)
-            notifyDataSetChanged()
-        }
-
-        return view
-    }
-}
